@@ -57,6 +57,11 @@ func RSSMergeHandler(w http.ResponseWriter, r *http.Request) {
 		isDay = true
 	}
 
+	isConcat := false
+	if len(r.URL.Query()["concat"]) != 0 {
+		isConcat = true
+	}
+
 	feedJobs := make(chan url.URL, len(feedURLs))
 	feedResults := make(chan string, len(feedURLs))
 
@@ -74,7 +79,7 @@ func RSSMergeHandler(w http.ResponseWriter, r *http.Request) {
 		rawFeeds = append(rawFeeds, <-feedResults)
 	}
 
-	mergedFeed := Merge(rawFeeds)
+	mergedFeed := Merge(rawFeeds, isConcat)
 	mergedFeed.Link.Href = sourceURL.String()
 
 	if isDay {

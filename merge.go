@@ -11,7 +11,7 @@ import (
 )
 
 // Merge takes a list of raw feed strings, parses and then merges them
-func Merge(rawFeeds []string) feeds.Feed {
+func Merge(rawFeeds []string, isConcat bool) feeds.Feed {
 	fp := gofeed.NewParser()
 
 	var items itemList
@@ -34,7 +34,7 @@ func Merge(rawFeeds []string) feeds.Feed {
 					time = updated
 				}
 
-				items = append(items, convertItem(item, *time, feed))
+				items = append(items, convertItem(item, *time, feed, isConcat))
 			}
 		}
 	}
@@ -53,15 +53,22 @@ func Merge(rawFeeds []string) feeds.Feed {
 	return feed
 }
 
-func convertItem(item *gofeed.Item, created time.Time, feed *gofeed.Feed) *feeds.Item {
+func convertItem(item *gofeed.Item, created time.Time, feed *gofeed.Feed, isConcat bool) *feeds.Item {
 	if item.Link == "" {
 		item.Link = feed.Link
+	}
+	content := ""
+	if isConcat {
+		content = strings.Join([]string{feed.Title, item.Content}, "<br/>")
+	} else {
+		content = item.Content
 	}
 	return &feeds.Item{
 		Title:       item.Title,
 		Link:        &feeds.Link{Href: item.Link},
 		Created:     created,
 		Description: feed.Title,
+		Content:     content,
 	}
 }
 
